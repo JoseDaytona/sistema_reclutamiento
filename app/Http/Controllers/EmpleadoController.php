@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Idioma;
+use App\Models\Candidato;
+use App\Models\Empleado;
+use App\Models\Puesto;
 use App\Models\TipoEstatus;
 use Illuminate\Http\Request;
 
-class IdiomaController extends Controller
+class EmpleadoController extends Controller
 {
     public function __construct()
     {
@@ -18,22 +20,16 @@ class IdiomaController extends Controller
 
     public function index()
     {
-        $table = Idioma::all();
-        return view("idioma.consulta", compact("table"));
-    }
-
-    public function create()
-    {
-        $id = null;
-        $select_estatus = TipoEstatus::all();
-        return view("idioma.registrar", compact("id", "select_estatus"));
+        $table = Empleado::all();
+        return view("empledo.consulta", compact("table"));
     }
 
     public function edit($id)
     {
-        $info = Idioma::where("id", $id)->first();
+        $info = Empleado::where("id", $id)->first();
+        $select_puesto = Puesto::all();
         $select_estatus = TipoEstatus::all();
-        return view("idioma.registrar", compact("id", "info", "select_estatus"));
+        return view("empleado.registrar", compact("id", "info", "select_puesto", "select_estatus"));
     }
 
     public function store(Request $request)
@@ -42,14 +38,18 @@ class IdiomaController extends Controller
 
             $id = $request->get("id");
             
-            Idioma::updateOrCreate([
+            Empleado::updateOrCreate([
                 'id' => $id,
                 ], [
+                'cedula' => $request->get("cedula"),
                 'nombre' => $request->get("nombre"),
+                'fecha_ingreso' => $request->get("fecha_ingreso"),
+                'puesto' => $request->get("puesto"),
+                'salario_mensual' => $request->get("salario_mensual"),
                 'estatus' => $request->get("estatus")
             ]);
 
-            return route('idioma.index');
+            return route('empleado.index');
             
         } catch (\Throwable $th) {
             throw $th;
@@ -58,8 +58,8 @@ class IdiomaController extends Controller
 
     public function destroy($id)
     {
-        $info = Idioma::where("id", $id);
+        $info = Empleado::where("id", $id);
         $info->delete();
-        return redirect('/idioma')->with('Deleted', 'Idioma Eliminado!');
+        return redirect('/empleado')->with('Deleted', 'Empleado Eliminado!');
     }
 }
