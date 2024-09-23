@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('candidato', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('id_usuario')->constrained('usuario');
             $table->foreignId('departamento')->constrained('tipo_departamento');
             $table->string('documento_identidad', 14)->unique();
             $table->string('nombre', 250);

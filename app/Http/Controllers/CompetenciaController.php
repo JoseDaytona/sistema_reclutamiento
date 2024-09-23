@@ -18,7 +18,9 @@ class CompetenciaController extends Controller
 
     public function index()
     {
-        $table = Competencia::all();
+        $table = Competencia::join("tipo_estatus", "competencia.estatus", "=", "tipo_estatus.id")
+            ->select("competencia.*", "tipo_estatus.nombre As str_estatus")
+            ->get();
         return view("competencia.consulta", compact("table"));
     }
 
@@ -41,16 +43,15 @@ class CompetenciaController extends Controller
         try {
 
             $id = $request->get("id");
-            
+
             Competencia::updateOrCreate([
                 'id' => $id,
-                ], [
+            ], [
                 'nombre' => $request->get("nombre"),
                 'estatus' => $request->get("estatus")
             ]);
 
             return route('competencia.index');
-            
         } catch (\Throwable $th) {
             throw $th;
         }

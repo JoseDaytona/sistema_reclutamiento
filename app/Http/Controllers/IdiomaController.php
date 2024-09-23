@@ -18,7 +18,9 @@ class IdiomaController extends Controller
 
     public function index()
     {
-        $table = Idioma::all();
+        $table = Idioma::join("tipo_estatus", "idioma.estatus", "=", "tipo_estatus.id")
+                    ->select("idioma.*", "tipo_estatus.nombre As str_estatus")
+                    ->get();
         return view("idioma.consulta", compact("table"));
     }
 

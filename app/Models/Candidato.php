@@ -9,6 +9,7 @@ class Candidato extends Model
     protected $table = 'candidato';
     
     protected $fillable = [
+        'id_usuario',
         'departamento',
         'documento_identidad',
         'nombre',

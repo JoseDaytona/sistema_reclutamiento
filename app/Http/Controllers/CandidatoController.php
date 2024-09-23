@@ -7,6 +7,7 @@ use App\Models\CandidatoCapacitacion;
 use App\Models\CandidatoCompetencia;
 use App\Models\CandidatoExperienciaLaboral;
 use App\Models\Competencia;
+use App\Models\Puesto;
 use App\Models\TipoDepartamento;
 use App\Models\TipoEstatus;
 use App\Models\TipoEstatusCandidato;
@@ -23,20 +24,32 @@ class CandidatoController extends Controller
         // $this->middleware('permisos:5,4', ['only' => ['destroy']]);
     }
 
+    public function listado_candidatos($id)
+    {
+        $puesto_postula = Puesto::where("id", $id)->first();
+        $table = Candidato::join("puesto", "puesto.id", "=", "candidato.puesto_postula")
+                    ->where("puesto.id", $id)
+                    ->select("candidato.id", "candidato.nombre As str_candidato", "puesto.nombre As puesto_postula",
+                            "candidato.salario_aspira", "candidato.recomendado_por")
+                    ->get();
+        return view("candidato.consulta", compact("table", "puesto_postula"));
+    }
+
     public function index()
     {
         $table = Candidato::all();
         return view("candidato.consulta", compact("table"));
     }
 
-    public function create()
+    public function postularme($id_puesto)
     {
-        $id = null;
+        $id = id();
+        $puesto = Puesto::where("id", $id_puesto)->first();
         $select_departamento = TipoDepartamento::all();
         $select_competencia = Competencia::all();
         $select_estatus = TipoEstatusCandidato::all();
         $select_nivel_capacitacion = TipoNivelCapacitacion::all();
-        return view("candidato.registrar", compact("id", "select_departamento", "select_estatus", "select_nivel_capacitacion"));
+        return view("candidato.registrar", compact("id", "id_puesto", "puesto", "select_departamento", "select_estatus", "select_nivel_capacitacion"));
     }
 
     public function edit($id)
@@ -58,6 +71,7 @@ class CandidatoController extends Controller
             $candidato = Candidato::updateOrCreate([
                 'id' => $id,
             ], [
+                'id_usuario' => $request->get("id_usuario"),
                 'departamento' => $request->get("departamento"),
                 'documento_identidad' => $request->get("documento_identidad"),
                 'nombre' => $request->get("nombre"),

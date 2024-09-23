@@ -20,8 +20,12 @@ class EmpleadoController extends Controller
 
     public function index()
     {
-        $table = Empleado::all();
-        return view("empledo.consulta", compact("table"));
+        $table = Empleado::join("candidato", "empleado.id_candidato", "=", "empleado.id")
+                    ->join("puesto", "candidato.puesto_postula", "=", "puesto.id")
+                    ->join("tipo_departamento", "puesto.id_departamento", "=", "tipo_departamento.id")
+                    ->select("empleado.*", "puesto.nombre As str_puesto",
+                                "tipo_departamento.nombre As str_departamento");
+        return view("empleado.consulta", compact("table"));
     }
 
     public function edit($id)
@@ -41,6 +45,7 @@ class EmpleadoController extends Controller
             Empleado::updateOrCreate([
                 'id' => $id,
                 ], [
+                'id_candidato' => $request->get("id_candidato"),
                 'cedula' => $request->get("cedula"),
                 'nombre' => $request->get("nombre"),
                 'fecha_ingreso' => $request->get("fecha_ingreso"),

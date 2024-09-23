@@ -18,7 +18,9 @@ class DepartamentoController extends Controller
 
     public function index()
     {
-        $table = TipoDepartamento::all();
+        $table = TipoDepartamento::join("tipo_estatus", "tipo_departamento.estatus", "=", "tipo_estatus.id")
+            ->select("tipo_departamento.*", "tipo_estatus.nombre As str_estatus")
+            ->get();
         return view("departamento.consulta", compact("table"));
     }
 
@@ -41,16 +43,15 @@ class DepartamentoController extends Controller
         try {
 
             $id = $request->get("id");
-            
+
             TipoDepartamento::updateOrCreate([
                 'id' => $id,
-                ], [
+            ], [
                 'nombre' => $request->get("nombre"),
                 'estatus' => $request->get("estatus")
             ]);
 
             return route('departamento.index');
-            
         } catch (\Throwable $th) {
             throw $th;
         }
