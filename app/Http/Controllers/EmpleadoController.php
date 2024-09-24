@@ -20,11 +20,14 @@ class EmpleadoController extends Controller
 
     public function index()
     {
-        $table = Empleado::join("candidato", "empleado.id_candidato", "=", "empleado.id")
-                    ->join("puesto", "candidato.puesto_postula", "=", "puesto.id")
-                    ->join("tipo_departamento", "puesto.id_departamento", "=", "tipo_departamento.id")
-                    ->select("empleado.*", "puesto.nombre As str_puesto",
-                                "tipo_departamento.nombre As str_departamento");
+        $table = Empleado::join("puesto", "empleado.puesto", "=", "puesto.id")
+            ->join("tipo_departamento", "puesto.id_departamento", "=", "tipo_departamento.id")
+            ->select(
+                "empleado.*",
+                "puesto.nombre As str_puesto",
+                "tipo_departamento.nombre As str_departamento"
+            )
+            ->get();
         return view("empleado.consulta", compact("table"));
     }
 
@@ -41,10 +44,10 @@ class EmpleadoController extends Controller
         try {
 
             $id = $request->get("id");
-            
+
             Empleado::updateOrCreate([
                 'id' => $id,
-                ], [
+            ], [
                 'id_candidato' => $request->get("id_candidato"),
                 'cedula' => $request->get("cedula"),
                 'nombre' => $request->get("nombre"),
@@ -55,7 +58,6 @@ class EmpleadoController extends Controller
             ]);
 
             return route('empleado.index');
-            
         } catch (\Throwable $th) {
             throw $th;
         }

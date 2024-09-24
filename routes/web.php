@@ -32,6 +32,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::resource('candidato', 'CandidatoController');
     Route::get('candidatos/{id}', 'CandidatoController@listado_candidatos')->name('candidatos');
     Route::get('postularme/{id_puesto}', 'CandidatoController@postularme')->name('postularme');
+    Route::get('procesar_candidato/{candidato}/{estatus}', 'CandidatoController@procesar_candidato')->name('procesar_candidato');
 
     //Idioma
     Route::resource('idioma', 'IdiomaController');
@@ -44,6 +45,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     //Puesto
     Route::resource('puesto', 'PuestoController');
+    Route::get('mis_postulaciones', 'PuestoController@mis_postulaciones')->name('mis_postulaciones');
 
     //Empleado
     Route::resource('empleado', 'EmpleadoController');

@@ -7,6 +7,7 @@ use App\Models\CandidatoCapacitacion;
 use App\Models\CandidatoCompetencia;
 use App\Models\CandidatoExperienciaLaboral;
 use App\Models\Competencia;
+use App\Models\Empleado;
 use App\Models\Puesto;
 use App\Models\TipoDepartamento;
 use App\Models\TipoEstatus;
@@ -24,14 +25,54 @@ class CandidatoController extends Controller
         // $this->middleware('permisos:5,4', ['only' => ['destroy']]);
     }
 
+    public function procesar_candidato($candidato, $estatus)
+    {
+        try {
+
+            $candidato = Candidato::where("id", $candidato)->first();
+            $candidato->estatus = $estatus;
+            $puesto_postula = $candidato->puesto_postula;
+            $candidato->save();
+
+            if ($estatus == 2) //Aceptado
+            {
+                Empleado::updateOrCreate([
+                    'id' => 0,
+                ], [
+                    'id_candidato' => $candidato->id,
+                    'cedula' => $candidato->documento_identidad,
+                    'nombre' => $candidato->nombre,
+                    'fecha_ingreso' => date("Y-m-d"),
+                    'puesto' => $puesto_postula,
+                    'salario_mensual' => $candidato->salario_aspira,
+                    'estatus' => 1
+                ]);
+            }
+
+            $tipo_mensaje = $estatus == 2 ? "Saved" : "Updated";
+            $mensaje = $estatus == 2 ? "Candidato Contratado" : "Candidato Rechazado";
+            return redirect()->back()->with($tipo_mensaje, $mensaje);
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+    }
+
     public function listado_candidatos($id)
     {
         $puesto_postula = Puesto::where("id", $id)->first();
         $table = Candidato::join("puesto", "puesto.id", "=", "candidato.puesto_postula")
-                    ->where("puesto.id", $id)
-                    ->select("candidato.id", "candidato.nombre As str_candidato", "puesto.nombre As puesto_postula",
-                            "candidato.salario_aspira", "candidato.recomendado_por")
-                    ->get();
+            ->join("tipo_estatus_candidato", "tipo_estatus_candidato.id", "=", "candidato.estatus")
+            ->where("puesto.id", $id)
+            ->select(
+                "candidato.id",
+                "candidato.nombre As str_candidato",
+                "puesto.nombre As puesto_postula",
+                "candidato.salario_aspira",
+                "candidato.recomendado_por",
+                "candidato.estatus As id_estatus",
+                "tipo_estatus_candidato.nombre As estatus"
+            )
+            ->get();
         return view("candidato.consulta", compact("table", "puesto_postula"));
     }
 
@@ -49,7 +90,7 @@ class CandidatoController extends Controller
         $select_competencia = Competencia::all();
         $select_estatus = TipoEstatusCandidato::all();
         $select_nivel_capacitacion = TipoNivelCapacitacion::all();
-        return view("candidato.registrar", compact("id", "id_puesto", "puesto", "select_departamento", "select_estatus", "select_nivel_capacitacion"));
+        return view("candidato.registrar", compact("id", "id_puesto", "puesto", "select_competencia", "select_nivel_capacitacion"));
     }
 
     public function edit($id)
@@ -71,14 +112,14 @@ class CandidatoController extends Controller
             $candidato = Candidato::updateOrCreate([
                 'id' => $id,
             ], [
-                'id_usuario' => $request->get("id_usuario"),
+                'id_usuario' => id(),
                 'departamento' => $request->get("departamento"),
                 'documento_identidad' => $request->get("documento_identidad"),
                 'nombre' => $request->get("nombre"),
                 'puesto_postula' => $request->get("puesto_postula"),
                 'salario_aspira' => $request->get("salario_aspira"),
                 'recomendado_por' => $request->get("recomendado_por"),
-                'estatus' => $request->get("estatus")
+                'estatus' => 1
             ]);
 
             $id_candidato = $candidato->id;
@@ -94,7 +135,7 @@ class CandidatoController extends Controller
                     $id_nivel = $fila['id_nivel'];
                     $fecha_desde = $fila['fecha_desde'];
                     $fecha_hasta = $fila['fecha_hasta'];
-                    $cursando = $fila['cursando'];
+                    $cursando = 0;
                     $institucion = $fila['institucion'];
 
                     CandidatoCapacitacion::updateOrCreate([
@@ -131,18 +172,17 @@ class CandidatoController extends Controller
 
             CandidatoExperienciaLaboral::where("id_candidato", $id_candidato)->delete();
 
-            
-            $lista_competencia =  $request->get("listado_competencia");
+            $experiencia_laboral =  $request->get("listado_experiencia");
 
-            if (!empty($lista_competencia)) {
-                foreach ($lista_competencia as $fila) {
+            if (!empty($experiencia_laboral)) {
+                foreach ($experiencia_laboral as $fila) {
 
                     $empresa = $fila['empresa'];
                     $descripcion_puesto = $fila['descripcion_puesto'];
                     $fecha_desde = $fila['fecha_desde'];
                     $fecha_hasta = $fila['fecha_hasta'];
                     $salario = $fila['salario'];
-            
+
                     CandidatoExperienciaLaboral::updateOrCreate([
                         'id' => 0,
                     ], [
@@ -156,7 +196,7 @@ class CandidatoController extends Controller
                 }
             }
 
-            return route('candidato.index');
+            return route('mis_postulaciones');
         } catch (\Throwable $th) {
             throw $th;
         }

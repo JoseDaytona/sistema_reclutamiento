@@ -3,6 +3,10 @@
 <h1 class="text-2xl font-bold text-black pb-3">Gestión de Empleados</h1>
 <hr>
 <div class="w-full mt-6 bg-white">
+    <div class="flex p-2">
+        <button type="button" class="btnExportarLista w-40 bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-md shadow-sm">Exportar Reporte</a>
+    </div>
+    <hr>
     <div class="p-4">
         <div id="gvtable"></div>
     </div>
@@ -10,12 +14,19 @@
 @endsection
 @section('jquery')
 <script>
+    let _gvTable;
+
     $(document).ready(function() {
         CargarGrilla(@json($table));
     });
 
+    $(".btnExportarLista").click(function() {
+        // Llamar al método de exportación
+        _gvTable.exportToExcel(false);
+    });
+
     function CargarGrilla(data) {
-        $("#gvtable").dxDataGrid({
+        _gvTable = $("#gvtable").dxDataGrid({
             dataSource: data,
             // columnHidingEnabled: true,
             columnsAutoWidth: false,
@@ -33,8 +44,9 @@
                 pageSize: 10
             },
             export: {
-                fileName: "",
-                proxyUrl: "",
+                enabled: true,
+                fileName: "Empleados",
+                allowExportSelectedData: false
             },
             scrolling: {
                 columnRenderingMode: "virtual"
@@ -63,28 +75,6 @@
                 visible: false
             },
             columns: [{
-                    caption: "Acción",
-                    alignment: "left",
-                    width: "auto",
-                    cssClass: "alignment-center text-uppercase d-flex justify-content-center btns-tb",
-                    cellTemplate: function(container, cellInfo) {
-                        var html = "<div class='grid grid-cols-2 gap-1'>";
-
-                        var url_e = "{{ route('empleado.edit', 'key_codigo') }}";
-                        url_e = url_e.replace("key_codigo", cellInfo.data.id);
-                        html += '<a href="' + url_e + '" style="margin-left: 10px;" class="px-4 py-1 text-white text-center font-light tracking-wider bg-blue-700 rounded">Editar</a>';
-
-                        var url_d = '{{ route("empleado.destroy", "key_codigo") }}';
-                        url_d = url_d.replace("key_codigo", cellInfo.data.id);
-                        html += '<form name="frm_delete" action="' + url_d + '" method="post" class="ml-2" style="margin-left: 10px;">';
-                        html += '@method("delete")'
-                        html += '@csrf'
-                        html += '<button type="button" class="px-4 py-1 text-white font-light tracking-wider text-center bg-red-600 rounded btn_delete_consultar">Eliminar</button></form>';
-                        html += '</div>'
-                        $(html).appendTo(container);
-                    }
-                },
-                {
                     caption: "Departamento",
                     dataField: "str_departamento",
                     alignment: "left",
@@ -117,11 +107,6 @@
                     dataField: "fecha_ingreso",
                     dataType: "date",
                     format: "dd/MM/yyyy",
-                    deserializeValue: function(value) {
-                        if (value != null) {
-                            return ConvertISODatetoDateFormat(value);
-                        }
-                    },
                     alignment: "left",
                     width: "auto",
                     cssClass: "alignment-center text-uppercase",

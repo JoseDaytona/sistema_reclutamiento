@@ -19,6 +19,47 @@ class PuestoController extends Controller
         // $this->middleware('permisos:5,4', ['only' => ['destroy']]);
     }
 
+    public function mis_postulaciones()
+    {
+        try {
+            $userId = id();
+
+            $table = Puesto::join("tipo_departamento", "puesto.id_departamento", "=", "tipo_departamento.id")
+                ->join("tipo_estatus", "puesto.estatus", "=", "tipo_estatus.id")
+                ->join("tipo_nivel_riesgo", "puesto.nivel_riesgo", "=", "tipo_nivel_riesgo.id")
+                ->leftjoin(
+                    "candidato",
+                    function ($join) use ($userId) {
+                        $join->on('candidato.puesto_postula', '=', 'puesto.id');
+                        $join->on('candidato.id_usuario', '=', DB::raw($userId));
+                    }
+                )
+                ->select(
+                    "puesto.id",
+                    "puesto.nombre As nombre_puesto",
+                    "tipo_departamento.nombre As str_departamento",
+                    "tipo_estatus.nombre As str_estatus",
+                    "tipo_nivel_riesgo.nombre As str_nivel_riesgo",
+                    DB::raw("CONCAT(FORMAT(puesto.salario_minimo, 2), ' a ', FORMAT(puesto.salario_maximo, 2)) As rango_salarial"),
+                    DB::raw("COUNT(candidato.id) As cantidad_candidato")
+                )
+                ->groupby(
+                    "puesto.id",
+                    "puesto.nombre",
+                    "tipo_departamento.nombre",
+                    "tipo_estatus.nombre",
+                    "tipo_nivel_riesgo.nombre",
+                    "puesto.salario_minimo",
+                    "puesto.salario_maximo"
+                )
+                ->get();
+
+                return view("candidato.postulaciones", compact("table"));
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
+    }
+
     public function listado_general()
     {
         if (tipo_role() != 3) {
@@ -57,7 +98,7 @@ class PuestoController extends Controller
                     "candidato",
                     function ($join) use ($userId) {
                         $join->on('candidato.puesto_postula', '=', 'puesto.id');
-                        $join->on('candidato.id_usuario', '!=', DB::raw($userId));
+                        //$join->on('candidato.id_usuario', '!=', DB::raw($userId));
                     }
                 )
                 ->select(
@@ -70,6 +111,7 @@ class PuestoController extends Controller
                     DB::raw("COUNT(candidato.id) As cantidad_candidato")
                 )
                 ->where("puesto.estatus", 1) //Solo activos
+                
                 ->groupby(
                     "puesto.id",
                     "puesto.nombre",

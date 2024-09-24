@@ -69,18 +69,21 @@
                     cssClass: "alignment-center text-uppercase d-flex justify-content-center btns-tb",
                     cellTemplate: function(container, cellInfo) {
                         var html = "<div class='grid grid-cols-2 gap-1'>";
+                        if (cellInfo.data.id_estatus == 1) {
+                            var url_e = "{{ route('procesar_candidato', ['candidato' => 'key_codigo', 'estatus' => '2' ]) }}";
+                            url_e = url_e.replace("key_codigo", cellInfo.data.id);
+                            html += '<a href="' + url_e + '" style="margin-left: 10px;" class="px-4 py-1 text-white text-center font-light tracking-wider bg-blue-700 rounded">Aceptar</a>';
 
-                        var url_e = "{{ route('puesto.edit', 'key_codigo') }}";
-                        url_e = url_e.replace("key_codigo", cellInfo.data.id);
-                        html += '<a href="' + url_e + '" style="margin-left: 10px;" class="px-4 py-1 text-white text-center font-light tracking-wider bg-blue-700 rounded">Editar</a>';
+                            url_e = "{{ route('procesar_candidato', ['candidato' => 'key_codigo', 'estatus' => '3' ]) }}";
+                            url_e = url_e.replace("key_codigo", cellInfo.data.id);
+                            html += '<a href="' + url_e + '" style="margin-left: 10px;" class="px-4 py-1 text-white text-center font-light tracking-wider bg-red-700 rounded">Rechazar</a>';
+                        }
+                        else
+                        {
+                            html += '<label class="text-xl font-bold ' + (cellInfo.data.id_estatus == 2 ? 'text-green-700' : 'text-red-700') + '">' + cellInfo.data.estatus + '</label>';
+                        }
 
-                        var url_d = '{{ route("puesto.destroy", "key_codigo") }}';
-                        url_d = url_d.replace("key_codigo", cellInfo.data.id);
-                        html += '<form name="frm_delete" action="' + url_d + '" method="post" class="ml-2" style="margin-left: 10px;">';
-                        html += '@method("delete")'
-                        html += '@csrf'
-                        html += '<button type="button" class="px-4 py-1 text-white font-light tracking-wider text-center bg-red-600 rounded btn_delete_consultar">Eliminar</button></form>';
-                        html += '</div>'
+                        html += '</div>';
                         $(html).appendTo(container);
                     }
                 },

@@ -32,7 +32,7 @@
         @endif
     </nav>
     @if(tipo_role() == 3)
-    <a href="" class="absolute w-full upgrade-btn bottom-0 active-nav-link text-white flex items-center justify-center py-4">
+    <a href="mis_postulaciones" class="absolute w-full upgrade-btn bottom-0 active-nav-link text-white flex items-center justify-center py-4">
         <i class="fas fa-list mr-3"></i>
         Mis Postulaciones
     </a>
